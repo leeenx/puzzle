@@ -1,0 +1,218 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>H5小游戏100例: 拼图</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no" />
+  <link href="css/puzzle.css" rel="stylesheet">
+</head>
+
+<body>
+	<div class="wrapper puzzle">
+		<div class="puzzle_home"></div>
+		<!-- 用户界面 -->
+		<div class="puzzle_menu" id="menu">
+			<div class="puzzle_high_score" id="highScore"></div>
+			<a class="puzzle_btn" href="javascript:showPuzzleMap();">新 游 戏</a>
+			<a class="puzzle_btn disabled" href="javascript:;" id="resumeGame">继续游戏</a>
+			<a class="puzzle_btn" href="https://zhuanlan.zhihu.com/snsgame?group_id=909745245186072576" target="_blank">关注我们</a>
+			<a class="puzzle_btn" href="https://aotu.io/" target="_blank">凹凸官网</a>
+		</div>
+		<!-- 选择关卡 -->
+		<div class="puzzle_map" id="puzzleMap">
+			<div class="puzzle_map_head">
+				<a class="puzzle_map_back" href="javascript:hidePuzzleMap();"></a>
+				选择关卡
+			</div>
+			<ul class="puzzle_map_body" id="puzzleList">
+				<!-- <li>
+					<span class="puzzle_map_thumb">
+						<img src="./images/covers/a.jpg">
+					</span>
+					<span class="puzzle_map_instr">
+						秋天的银杏树<br>
+						免费
+					</span>
+				</li> -->
+			</ul>
+			<div class="puzzle_map_footer">
+				难度：
+				<input type="radio" value="1" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="2" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="3" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="4" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="5" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="6" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="7" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="8" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="9" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="10" name="difficulty" class="puzzle_difficulty">
+			</div>
+		</div>
+		<!-- 游戏画布 -->
+		<canvas class="puzzle_game" id="puzzleGame"></canvas>
+		<!-- 暂停时的广告 -->
+		<div class="puzzle_ad" id="puzzleAd">
+			<a href="//jd.com"><img src="images/ad@2x.jpg" /></a>
+			<div class="puzzle_ad_close" id="puzzleAdClose"></div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript" src="script/lib/pixi.js"></script>
+<script type="text/javascript" src="script/lib/pixi-extra-filters.js"></script>
+<script type="text/javascript" src="script/lib/gsap/TweenMax.js"></script>
+<script type="text/javascript" src="script/Puzzle.js"></script>
+<script type="text/javascript">
+~function() {
+	// 关卡信息
+	var levels = [
+		{
+			// 大图
+			picture: "images/pictures/a.jpg", 
+			// 小图
+			thumb: "images/covers/a.jpg", 
+			// 描述
+			instr: "秋天的银杏树", 
+			// 免费
+			free: true
+		}, 
+		{
+			// 大图
+			picture: "images/pictures/b.jpg", 
+			// 小图
+			thumb: "images/covers/b.jpg", 
+			// 描述
+			instr: "毕加索的画 ---- 少女", 
+			// 免费
+			free: true
+		}, 
+		{
+			// 大图
+			picture: "images/pictures/c.jpg", 
+			// 小图
+			thumb: "images/covers/c.jpg", 
+			// 描述
+			instr: "毕加索的画 ---- 树", 
+			// 免费
+			free: true
+		}, 
+		{
+			// 大图
+			picture: "images/pictures/d.jpg", 
+			// 小图
+			thumb: "images/covers/d.jpg", 
+			// 描述
+			instr: "毕加索的画 ---- 桥", 
+			// 免费
+			free: true
+		}, 
+		{
+			// 大图
+			picture: "images/pictures/e.jpg", 
+			// 小图
+			thumb: "images/covers/e.jpg", 
+			// 描述
+			instr: "不知道哪里来的美女", 
+			// 免费
+			free: false
+		}
+	]; 
+
+	// 初始化列表
+	puzzleList.innerHTML = levels.map(function(level, index) {
+		return '\
+					<li onclick="selectLevel(' + index + ')">\
+						<span class="puzzle_map_thumb">\
+							<img src="' + level.thumb + '">\
+						</span>\
+						<span class="puzzle_map_instr">\
+							' + level.instr + '<br>\
+							<b>' + (level.free === true ? '免费' : '解锁可玩') + '</b>\
+						</span>\
+					</li>'
+	}).join("\n"); 
+
+	// 显示地图 
+	window.showPuzzleMap = function() {
+		puzzleMap.className = "puzzle_map show"; 
+	}
+	// 隐藏地图
+	window.hidePuzzleMap = function() {
+		puzzleMap.className = "puzzle_map";  
+	}
+
+	// 选择关卡
+	window.selectLevel = function(index) { 
+		puzzleGame.className = "puzzle_game show"; 
+		setTimeout(function() {
+			puzzle.enter(levels[index].picture); 
+			record.level = index; 
+			updateRecord(); 
+		}, 600); 
+	}
+
+	// 更新记录
+	window.updateRecord = function() {
+		localStorage.setItem("puzzle-record", JSON.stringify(record)); 
+	}
+
+	// 设置难度
+	var setDifficulty = function(difficulty) { 
+		difficulty = difficulty | 0; 
+		difficulty = difficulty > 1 ? difficulty : 1; 
+		difficultyOpts[difficulty - 1].checked = "checked"; 
+		puzzle.difficulty = difficulty; 
+	}
+
+	// 创建拼图对象
+	var puzzle = new Puzzle(); 
+
+	// 通关
+	puzzle.event.on("pass", function() { 
+		if(record.level < levels.length - 1) { 
+			++record.level; 
+			puzzle.enter(levels[record.level].picture);
+			updateRecord();  
+		}
+		else {
+			alert("游戏结束"); 
+		}
+	}); 
+
+	// 难度选项
+	var difficultyOpts = document.querySelectorAll(".puzzle_difficulty"); 
+	difficultyOpts.forEach(function(opt) {
+		opt.addEventListener("click", function() {
+			record.difficulty = this.value; 
+			puzzle.difficulty = this.value; 
+			updateRecord(); 
+		}); 
+	}); 
+
+	// 从 localStorage 中读取记录
+	var record = JSON.parse(localStorage.getItem("puzzle-record")) || {level: 0, difficulty: 2};
+
+	// 同步游戏难度
+	setDifficulty(record.difficulty); 
+
+	// 玩过 
+	if(record.level > 0) {
+		resumeGame.className = "puzzle_btn"; 
+		resumeGame.onclick = function() {
+			selectLevel(record.level); 
+		}
+	}
+	// 没玩过
+	else {
+		resumeGame.className = "puzzle_btn disabled"; 
+	} 
+
+	// 默认进入第一张图
+	puzzle.init(); 
+	window.puzzle = puzzle; 
+}(); 
+
+
+
+</script>
+</html>
