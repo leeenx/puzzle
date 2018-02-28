@@ -4,7 +4,11 @@
 */
 
 export default class Gridistribution{
-	constructor({width, height, cell = {width: 10}, rectangles = []}) {
+	constructor(...args) {
+		this.init(...args); 
+	}
+	// 初始化
+	init({width, height, cell = {width: 10}, rectangles = []}) {
 		width = width >> 0; 
 		height = height >> 0; 
 		// 格子的高默认与它的宽一样
@@ -33,6 +37,10 @@ export default class Gridistribution{
 		Object.assign(this, {row, col, width, height, cell: cell}); 
 		// 剔除不可分布成员
 		this.trim(rectangles); 
+	}
+	// 重置
+	reset(...args) { 
+		this.init(...args); 
 	}
 	_shuffle(a) {
 	    for (let i = a.length; i; i--) {
@@ -63,7 +71,8 @@ export default class Gridistribution{
 	// 随机返回 count 个格子
 	pick(count) {
 		if(count > this.shuffleCells.length) {
-			throw("超出范围"); 
+			// throw("超出范围"); 
+			return []; 
 		}
 		return this.shuffleCells.slice(0, count); 
 	}

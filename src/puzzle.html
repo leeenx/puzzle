@@ -46,7 +46,7 @@
 				<input type="radio" value="7" name="difficulty" class="puzzle_difficulty">
 				<input type="radio" value="8" name="difficulty" class="puzzle_difficulty">
 				<input type="radio" value="9" name="difficulty" class="puzzle_difficulty">
-				<input type="radio" value="10" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="10" name="difficulty" class="puzzle_difficulty"> 
 			</div>
 		</div>
 		<!-- 游戏画布 -->
@@ -190,13 +190,13 @@
 	}); 
 
 	// 从 localStorage 中读取记录
-	var record = JSON.parse(localStorage.getItem("puzzle-record")) || {level: 0, difficulty: 2};
+	var record = JSON.parse(localStorage.getItem("puzzle-record")) || {level: -1, difficulty: 2};
 
 	// 同步游戏难度
 	setDifficulty(record.difficulty); 
 
 	// 玩过 
-	if(record.level > 0) {
+	if(record.level >= 0) {
 		resumeGame.className = "puzzle_btn"; 
 		resumeGame.onclick = function() {
 			selectLevel(record.level); 
@@ -209,7 +209,6 @@
 
 	// 默认进入第一张图
 	puzzle.init(); 
-	window.puzzle = puzzle; 
 }(); 
 
 

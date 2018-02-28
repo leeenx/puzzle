@@ -228,7 +228,7 @@ class Puzzle {
 				}; 
 				let mask = new PIXI.Sprite(PIXI.utils.TextureCache["clipart"]); 
 				this.stage.addChild(mask); 
-				mask.width = mask.height = this.clipart.width - .6; 
+				mask.width = mask.height = this.clipart.width; 
 				if(0 === row) {
 					clipart.height -= this.clipart.clipWidth; 
 					mask.y = -this.clipart.clipWidth; 
@@ -311,6 +311,12 @@ class Puzzle {
 		let grid = new Gridistribution(this.gridProps); 
 		// 提取随机格子
 		let cells = grid.pick(this.cliparts.length); 
+		while(cells.length === 0) { 
+			// 面积不够，取一半值
+			this.gridProps.cell.width *= .5; 
+			grid.reset(this.gridProps); 
+			cells = grid.pick(this.cliparts.length); 
+		}
 
 		// 显示底片
 		this.negative.visible = true; 
@@ -471,15 +477,14 @@ class Puzzle {
 			// 合并容器
 			else {
 				let parentB = rightClipart.sprite.parent; 
+				if(parentB === null) console.log("报错了", rightClipart, rightClipart.sprite, rightClipart.selected); 
 				if(parent !== parentB) {
 					let children = parentB.children; 
-					let count = 0; 
 					while(children.length > 0) {
 						parent.addChild(children[0]); 
-						if(++count > 50) break; 
 					} 
 					// 销毁
-					parentB.destroy(); 
+					parentB.destroy();  
 				}
 			}
 		}
@@ -491,15 +496,14 @@ class Puzzle {
 			// 合并容器
 			else { 
 				let parentB = upClipart.sprite.parent; 
+				if(parentB === null) console.log("报错了",upClipart, upClipart.sprite, upClipart.selected); 
 				if(parent !== parentB) {
 					let children = parentB.children; 
-					let count = 0; 
 					while(children.length > 0) {
 						parent.addChild(children[0]); 
-						if(++count > 50) break; 
 					} 
 					// 销毁
-					parentB.destroy(); 
+					parentB.destroy();  
 				}
 			}
 		}
@@ -511,15 +515,14 @@ class Puzzle {
 			// 合并容器
 			else {
 				let parentB = downClipart.sprite.parent; 
+				if(parentB === null) console.log("报错了", downClipart, downClipart.sprite, downClipart.selected); 
 				if(parent !== parentB) {
 					let children = parentB.children; 
-					let count = 0; 
 					while(children.length > 0) {
 						parent.addChild(children[0]); 
-						if(++count > 50) break; 
 					} 
 					// 销毁
-					parentB.destroy(); 
+					parentB.destroy();  
 				}
 			}
 		}
@@ -562,9 +565,8 @@ class Puzzle {
 		// 创建一条时间轴
 		if(this.shellTimeline === undefined) {
 			// 礼花随机位置
-			this.gridProps.cell = {width: 20}; 
+			this.gridProps.cell.width = 20; 
 			let rnd = (new Gridistribution(this.gridProps)).pick(this.fireworks.length); 
-
 			// 时间轴数组
 			let tls = rnd.map(({x, y}, index) => { 
 				let shell = this.fireworks[index]; 

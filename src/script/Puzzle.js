@@ -7775,7 +7775,7 @@ var Puzzle = function () {
 					};
 					var mask = new PIXI.Sprite(PIXI.utils.TextureCache["clipart"]);
 					this.stage.addChild(mask);
-					mask.width = mask.height = this.clipart.width - .6;
+					mask.width = mask.height = this.clipart.width;
 					if (0 === row) {
 						clipart.height -= this.clipart.clipWidth;
 						mask.y = -this.clipart.clipWidth;
@@ -7855,6 +7855,12 @@ var Puzzle = function () {
 			var grid = new _Gridistribution2.default(this.gridProps);
 			// 提取随机格子
 			var cells = grid.pick(this.cliparts.length);
+			while (cells.length === 0) {
+				// 面积不够，取一半值
+				this.gridProps.cell.width *= .5;
+				grid.reset(this.gridProps);
+				cells = grid.pick(this.cliparts.length);
+			}
 
 			// 显示底片
 			this.negative.visible = true;
@@ -8023,12 +8029,11 @@ var Puzzle = function () {
 				// 合并容器
 				else {
 						var parentB = rightClipart.sprite.parent;
+						if (parentB === null) console.log("报错了", rightClipart, rightClipart.sprite, rightClipart.selected);
 						if (parent !== parentB) {
 							var children = parentB.children;
-							var count = 0;
 							while (children.length > 0) {
 								parent.addChild(children[0]);
-								if (++count > 50) break;
 							}
 							// 销毁
 							parentB.destroy();
@@ -8043,12 +8048,11 @@ var Puzzle = function () {
 				// 合并容器
 				else {
 						var _parentB = upClipart.sprite.parent;
+						if (_parentB === null) console.log("报错了", upClipart, upClipart.sprite, upClipart.selected);
 						if (parent !== _parentB) {
 							var _children = _parentB.children;
-							var _count = 0;
 							while (_children.length > 0) {
 								parent.addChild(_children[0]);
-								if (++_count > 50) break;
 							}
 							// 销毁
 							_parentB.destroy();
@@ -8063,12 +8067,11 @@ var Puzzle = function () {
 				// 合并容器
 				else {
 						var _parentB2 = downClipart.sprite.parent;
+						if (_parentB2 === null) console.log("报错了", downClipart, downClipart.sprite, downClipart.selected);
 						if (parent !== _parentB2) {
 							var _children2 = _parentB2.children;
-							var _count2 = 0;
 							while (_children2.length > 0) {
 								parent.addChild(_children2[0]);
-								if (++_count2 > 50) break;
 							}
 							// 销毁
 							_parentB2.destroy();
@@ -8123,9 +8126,8 @@ var Puzzle = function () {
 			// 创建一条时间轴
 			if (this.shellTimeline === undefined) {
 				// 礼花随机位置
-				this.gridProps.cell = { width: 20 };
+				this.gridProps.cell.width = 20;
 				var rnd = new _Gridistribution2.default(this.gridProps).pick(this.fireworks.length);
-
 				// 时间轴数组
 				var tls = rnd.map(function (_ref4, index) {
 					var x = _ref4.x,
@@ -8378,50 +8380,64 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 */
 
 var Gridistribution = function () {
-	function Gridistribution(_ref) {
-		var width = _ref.width,
-		    height = _ref.height,
-		    _ref$cell = _ref.cell,
-		    cell = _ref$cell === undefined ? { width: 10 } : _ref$cell,
-		    _ref$rectangles = _ref.rectangles,
-		    rectangles = _ref$rectangles === undefined ? [] : _ref$rectangles;
-
+	function Gridistribution() {
 		_classCallCheck(this, Gridistribution);
 
-		width = width >> 0;
-		height = height >> 0;
-		// 格子的高默认与它的宽一样
-		cell.height === undefined && (cell.height = cell.width);
-		// 列数
-		var col = width / cell.width >> 0;
-		// 行数
-		var row = height / cell.height >> 0;
-		// 宽高修正
-
-		// 表格数组
-		var _ref2 = [width / col, height / row];
-		cell.width = _ref2[0];
-		cell.height = _ref2[1];
-		this.grid = new Array(col * row);
-		for (var i = 0; i < row; ++i) {
-			for (var j = 0; j < col; ++j) {
-				var index = i * col + j;
-				this.grid[index] = {
-					index: index,
-					x: cell.width * j,
-					y: cell.height * i,
-					width: cell.width,
-					height: cell.height
-				};
-			}
-		}
-		// 挂载属性
-		Object.assign(this, { row: row, col: col, width: width, height: height, cell: cell });
-		// 剔除不可分布成员
-		this.trim(rectangles);
+		this.init.apply(this, arguments);
 	}
+	// 初始化
+
 
 	_createClass(Gridistribution, [{
+		key: "init",
+		value: function init(_ref) {
+			var width = _ref.width,
+			    height = _ref.height,
+			    _ref$cell = _ref.cell,
+			    cell = _ref$cell === undefined ? { width: 10 } : _ref$cell,
+			    _ref$rectangles = _ref.rectangles,
+			    rectangles = _ref$rectangles === undefined ? [] : _ref$rectangles;
+
+			width = width >> 0;
+			height = height >> 0;
+			// 格子的高默认与它的宽一样
+			cell.height === undefined && (cell.height = cell.width);
+			// 列数
+			var col = width / cell.width >> 0;
+			// 行数
+			var row = height / cell.height >> 0;
+			// 宽高修正
+
+			// 表格数组
+			var _ref2 = [width / col, height / row];
+			cell.width = _ref2[0];
+			cell.height = _ref2[1];
+			this.grid = new Array(col * row);
+			for (var i = 0; i < row; ++i) {
+				for (var j = 0; j < col; ++j) {
+					var index = i * col + j;
+					this.grid[index] = {
+						index: index,
+						x: cell.width * j,
+						y: cell.height * i,
+						width: cell.width,
+						height: cell.height
+					};
+				}
+			}
+			// 挂载属性
+			Object.assign(this, { row: row, col: col, width: width, height: height, cell: cell });
+			// 剔除不可分布成员
+			this.trim(rectangles);
+		}
+		// 重置
+
+	}, {
+		key: "reset",
+		value: function reset() {
+			this.init.apply(this, arguments);
+		}
+	}, {
 		key: "_shuffle",
 		value: function _shuffle(a) {
 			for (var i = a.length; i; i--) {
@@ -8469,7 +8485,8 @@ var Gridistribution = function () {
 		key: "pick",
 		value: function pick(count) {
 			if (count > this.shuffleCells.length) {
-				throw "超出范围";
+				// throw("超出范围"); 
+				return [];
 			}
 			return this.shuffleCells.slice(0, count);
 		}
