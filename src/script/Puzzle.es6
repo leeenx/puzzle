@@ -18,6 +18,7 @@ class Puzzle {
 	constructor() {
 		this.width = 375; 
 		this.height = 603; 
+
 		// 全屏适配
 		let {clientWidth, clientHeight} = document.body; 
 		let clientRatio = clientWidth / clientHeight; 
@@ -30,10 +31,15 @@ class Puzzle {
 			this.width = this.height * clientRatio; 
 		}
 
+		// 拼图尺寸 
 		this.imageWidth = 300 * .88 >> 0; 
 		this.imageHeight = 450 * .88 >> 0; 
 		// 图片与视窗的比率 
 		this.imageRatio = this.imageWidth / this.width; 
+
+		// 游戏头
+		this.head = 40; 
+
 		this.app = new PIXI.Application(
 			{
 				width: this.width, 
@@ -71,7 +77,7 @@ class Puzzle {
 		this.puzzle.set(
 			{
 				x: this.width / 2, 
-				y: this.height / 2, 
+				y: this.height / 2 + this.head, 
 				pivotX: this.imageWidth / 2, 
 				pivotY: this.imageHeight / 2 
 			}
@@ -300,9 +306,17 @@ class Puzzle {
 			}, 
 			// 标记禁区
 			rectangles: [
+				// 头部倒计时
+				{
+					x: 0, 
+					y: 0, 
+					width: this.width, 
+					height: this.head
+				}, 
+				// 中心拼图底图区
 				{
 					x: (this.width - this.imageWidth) / 2, 
-					y: (this.height- this.imageHeight) / 2, 
+					y: (this.height- this.imageHeight) / 2 + this.head, 
 					width: this.imageWidth, 
 					height: this.imageHeight
 				}
@@ -313,7 +327,7 @@ class Puzzle {
 		let cells = grid.pick(this.cliparts.length); 
 		while(cells.length === 0) { 
 			// 面积不够，取一半值
-			this.gridProps.cell.width *= .5; 
+			this.gridProps.cell.width *= .8; 
 			grid.reset(this.gridProps); 
 			cells = grid.pick(this.cliparts.length); 
 		}
@@ -644,17 +658,24 @@ class Puzzle {
 		this.negative && this.negative.destroy(); 
 	}
 
+	// 倒计时
+	countdown() {
+		
+	}
+
 	// 暂停
 	pause() { 
 		this.paused = true; 
 		TweenMax.pauseAll(); 
 		this.ticker.stop(); 
+		timer.pause(); 
 	}
 	// 恢复
 	resume() { 
 		this.paused = false; 
 		TweenMax.resumeAll(); 
 		this.ticker.start(); 
+		timer.resume(); 
 	}
 }
 

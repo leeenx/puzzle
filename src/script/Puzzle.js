@@ -7567,6 +7567,7 @@ var Puzzle = function () {
 
 		this.width = 375;
 		this.height = 603;
+
 		// 全屏适配
 		var _document$body = document.body,
 		    clientWidth = _document$body.clientWidth,
@@ -7582,10 +7583,15 @@ var Puzzle = function () {
 				this.width = this.height * clientRatio;
 			}
 
+		// 拼图尺寸 
 		this.imageWidth = 300 * .88 >> 0;
 		this.imageHeight = 450 * .88 >> 0;
 		// 图片与视窗的比率 
 		this.imageRatio = this.imageWidth / this.width;
+
+		// 游戏头
+		this.head = 40;
+
 		this.app = new PIXI.Application({
 			width: this.width,
 			height: this.height,
@@ -7618,7 +7624,7 @@ var Puzzle = function () {
 			this.puzzle = new PIXI.Container();
 			this.puzzle.set({
 				x: this.width / 2,
-				y: this.height / 2,
+				y: this.height / 2 + this.head,
 				pivotX: this.imageWidth / 2,
 				pivotY: this.imageHeight / 2
 			});
@@ -7845,9 +7851,18 @@ var Puzzle = function () {
 					width: this.clipart.width * .8
 				},
 				// 标记禁区
-				rectangles: [{
+				rectangles: [
+				// 头部倒计时
+				{
+					x: 0,
+					y: 0,
+					width: this.width,
+					height: this.head
+				},
+				// 中心拼图底图区
+				{
 					x: (this.width - this.imageWidth) / 2,
-					y: (this.height - this.imageHeight) / 2,
+					y: (this.height - this.imageHeight) / 2 + this.head,
 					width: this.imageWidth,
 					height: this.imageHeight
 				}]
@@ -7857,7 +7872,7 @@ var Puzzle = function () {
 			var cells = grid.pick(this.cliparts.length);
 			while (cells.length === 0) {
 				// 面积不够，取一半值
-				this.gridProps.cell.width *= .5;
+				this.gridProps.cell.width *= .8;
 				grid.reset(this.gridProps);
 				cells = grid.pick(this.cliparts.length);
 			}
@@ -8217,6 +8232,7 @@ var Puzzle = function () {
 			this.paused = true;
 			TweenMax.pauseAll();
 			this.ticker.stop();
+			_timer2.default.pause();
 		}
 		// 恢复
 
@@ -8226,6 +8242,7 @@ var Puzzle = function () {
 			this.paused = false;
 			TweenMax.resumeAll();
 			this.ticker.start();
+			_timer2.default.resume();
 		}
 	}, {
 		key: 'difficulty',
@@ -8466,8 +8483,8 @@ var Gridistribution = function () {
 				var startRow = y / _this.cell.height >> 0;
 				var endCol = (x + width) / _this.cell.width >> 0;
 				var endRow = (y + height) / _this.cell.height >> 0;
-				for (var i = startRow; i < endRow; ++i) {
-					for (var j = startRow; j < endCol; ++j) {
+				for (var i = startRow; i <= endRow; ++i) {
+					for (var j = startCol; j <= endCol; ++j) {
 						var index = i * _this.col + j;
 						_this.grid[index].isRemoved = true;
 					}

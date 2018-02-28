@@ -57,8 +57,8 @@ export default class Gridistribution{
 			let startRow = y / this.cell.height >> 0; 
 			let endCol = (x + width) / this.cell.width >> 0; 
 			let endRow = (y + height) / this.cell.height >> 0; 
-			for(let i = startRow; i < endRow; ++i) {
-				for(let j = startRow; j < endCol; ++j) {
+			for(let i = startRow; i <= endRow; ++i) {
+				for(let j = startCol; j <= endCol; ++j) {
 					let index = i * this.col + j; 
 					this.grid[index].isRemoved = true; 
 				}
