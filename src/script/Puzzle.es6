@@ -19,6 +19,18 @@ class Puzzle {
 		this.width = 375; 
 		this.height = 603; 
 
+		// 事件兼容
+		if(window.hasOwnProperty("ontouchstart") === true) {
+			this.touchstart = "touchstart"; 
+			this.touchmove = "touchmove"; 
+			this.touchend = "touchend"; 
+		}
+		else {
+			this.touchstart = "mousedown"; 
+			this.touchmove = "mousemove"; 
+			this.touchend = "mouseup"; 
+		}
+
 		// 全屏适配
 		let {clientWidth, clientHeight} = document.body; 
 		let clientRatio = clientWidth / clientHeight; 
@@ -37,9 +49,6 @@ class Puzzle {
 		// 图片与视窗的比率 
 		this.imageRatio = this.imageWidth / this.width; 
 
-		// 游戏头
-		this.head = 40; 
-
 		this.app = new PIXI.Application(
 			{
 				width: this.width, 
@@ -52,7 +61,7 @@ class Puzzle {
 		this.stage = this.app.stage; 
 		this.renderer = this.app.renderer; 
 		this.ticker = this.app.ticker; 
-		this.app.view.addEventListener("touchstart", e => e.preventDefault()); 
+		this.app.view.addEventListener(this.touchstart, e => e.preventDefault()); 
 
 		// 事件
 		this.event = new Event(); 
@@ -77,7 +86,7 @@ class Puzzle {
 		this.puzzle.set(
 			{
 				x: this.width / 2, 
-				y: this.height / 2 + this.head, 
+				y: this.height / 2, 
 				pivotX: this.imageWidth / 2, 
 				pivotY: this.imageHeight / 2 
 			}
@@ -305,18 +314,11 @@ class Puzzle {
 				width: this.clipart.width * .8
 			}, 
 			// 标记禁区
-			rectangles: [
-				// 头部倒计时
-				{
-					x: 0, 
-					y: 0, 
-					width: this.width, 
-					height: this.head
-				}, 
+			rectangles: [  
 				// 中心拼图底图区
 				{
 					x: (this.width - this.imageWidth) / 2, 
-					y: (this.height- this.imageHeight) / 2 + this.head, 
+					y: (this.height- this.imageHeight) / 2, 
 					width: this.imageWidth, 
 					height: this.imageHeight
 				}
@@ -325,9 +327,12 @@ class Puzzle {
 		let grid = new Gridistribution(this.gridProps); 
 		// 提取随机格子
 		let cells = grid.pick(this.cliparts.length); 
-		while(cells.length === 0) { 
+		let count = 0; 
+		let width = this.gridProps.cell.width; 
+		while(cells.length === 0 && ++count < 10) { 
 			// 面积不够，取一半值
-			this.gridProps.cell.width *= .8; 
+			width = width * .8; 
+			this.gridProps.cell.width = width; 
 			grid.reset(this.gridProps); 
 			cells = grid.pick(this.cliparts.length); 
 		}
@@ -343,7 +348,7 @@ class Puzzle {
 
 		// 舞台添加事件
 		this.stage.interactive = true; 
-		this.stage.on("touchmove", ({data, data: {global: endPosition}}) => { 
+		this.stage.on(this.touchmove, ({data, data: {global: endPosition}}) => { 
 			if(activeClipart !== null && startPosition !== null) { 
 				if(--activeClipart.negativeCount >= 0) {
 					activeClipart.rotate += activeClipart.negativeRotate; 
@@ -362,7 +367,7 @@ class Puzzle {
 			}
 		}); 
 
-		this.stage.on("touchend", e => { 
+		this.stage.on(this.touchend, e => { 
 			if(activeClipart === null) return ;
 			// 吸附效果 
 			if(Math.abs(activeClipart.x - activeClipart.selected.left) <= 15 && Math.abs(activeClipart.y - activeClipart.selected.top) <= 15) {
@@ -413,7 +418,7 @@ class Puzzle {
 			// 开启点击检测
 			sprite.interactive = true; 
 			// 添加事件
-			sprite.on("touchstart", ({data, data: {global: position}}) => { 
+			sprite.on(this.touchstart, ({data, data: {global: position}}) => { 
 				// 暂停中
 				if(this.paused === true) return ;
 				// 固定
@@ -579,7 +584,7 @@ class Puzzle {
 		// 创建一条时间轴
 		if(this.shellTimeline === undefined) {
 			// 礼花随机位置
-			this.gridProps.cell.width = 20; 
+			this.gridProps.cell.width = 12; 
 			let rnd = (new Gridistribution(this.gridProps)).pick(this.fireworks.length); 
 			// 时间轴数组
 			let tls = rnd.map(({x, y}, index) => { 
@@ -621,6 +626,8 @@ class Puzzle {
 		timer.clean(); 
 		TweenMax.killAll(); 
 		this.destroyChildren(this.stage); 
+		this.stage.off(this.touchmove); 
+		this.stage.off(this.touchend); 
 		// 销毁所有的纹理
 		PIXI.utils.destroyTextureCache(); 
 		// 删除加载记录
@@ -660,7 +667,7 @@ class Puzzle {
 
 	// 倒计时
 	countdown() {
-		
+
 	}
 
 	// 暂停

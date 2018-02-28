@@ -118,10 +118,13 @@
 		}
 	]; 
 
+	// 从 localStorage 中读取记录
+	var record = JSON.parse(localStorage.getItem("puzzle-record")) || {level: -1, difficulty: 2};
+
 	// 初始化列表
 	puzzleList.innerHTML = levels.map(function(level, index) {
 		return '\
-					<li onclick="selectLevel(' + index + ')">\
+					<li onclick="this.className === \'puzzle_lock\' || selectLevel(' + index + ')"' + (record.level < index && level.free !== true ? 'class="puzzle_lock"' : '') + '>\
 						<span class="puzzle_map_thumb">\
 							<img src="' + level.thumb + '">\
 						</span>\
@@ -131,6 +134,8 @@
 						</span>\
 					</li>'
 	}).join("\n"); 
+
+	var puzzleLevel = puzzleList.querySelectorAll("li"); 
 
 	// 显示地图 
 	window.showPuzzleMap = function() {
@@ -170,8 +175,9 @@
 	// 通关
 	puzzle.event.on("pass", function() { 
 		if(record.level < levels.length - 1) { 
-			++record.level; 
-			puzzle.enter(levels[record.level].picture);
+			// 解锁
+			puzzleLevel[++record.level].className = ""; 
+			puzzle.enter(levels[record.level].picture); 
 			updateRecord();  
 		}
 		else {
@@ -188,9 +194,6 @@
 			updateRecord(); 
 		}); 
 	}); 
-
-	// 从 localStorage 中读取记录
-	var record = JSON.parse(localStorage.getItem("puzzle-record")) || {level: -1, difficulty: 2};
 
 	// 同步游戏难度
 	setDifficulty(record.difficulty); 

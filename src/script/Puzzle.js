@@ -7568,6 +7568,17 @@ var Puzzle = function () {
 		this.width = 375;
 		this.height = 603;
 
+		// 事件兼容
+		if (window.hasOwnProperty("ontouchstart") === true) {
+			this.touchstart = "touchstart";
+			this.touchmove = "touchmove";
+			this.touchend = "touchend";
+		} else {
+			this.touchstart = "mousedown";
+			this.touchmove = "mousemove";
+			this.touchend = "mouseup";
+		}
+
 		// 全屏适配
 		var _document$body = document.body,
 		    clientWidth = _document$body.clientWidth,
@@ -7589,9 +7600,6 @@ var Puzzle = function () {
 		// 图片与视窗的比率 
 		this.imageRatio = this.imageWidth / this.width;
 
-		// 游戏头
-		this.head = 40;
-
 		this.app = new PIXI.Application({
 			width: this.width,
 			height: this.height,
@@ -7602,7 +7610,7 @@ var Puzzle = function () {
 		this.stage = this.app.stage;
 		this.renderer = this.app.renderer;
 		this.ticker = this.app.ticker;
-		this.app.view.addEventListener("touchstart", function (e) {
+		this.app.view.addEventListener(this.touchstart, function (e) {
 			return e.preventDefault();
 		});
 
@@ -7624,7 +7632,7 @@ var Puzzle = function () {
 			this.puzzle = new PIXI.Container();
 			this.puzzle.set({
 				x: this.width / 2,
-				y: this.height / 2 + this.head,
+				y: this.height / 2,
 				pivotX: this.imageWidth / 2,
 				pivotY: this.imageHeight / 2
 			});
@@ -7852,17 +7860,10 @@ var Puzzle = function () {
 				},
 				// 标记禁区
 				rectangles: [
-				// 头部倒计时
-				{
-					x: 0,
-					y: 0,
-					width: this.width,
-					height: this.head
-				},
 				// 中心拼图底图区
 				{
 					x: (this.width - this.imageWidth) / 2,
-					y: (this.height - this.imageHeight) / 2 + this.head,
+					y: (this.height - this.imageHeight) / 2,
 					width: this.imageWidth,
 					height: this.imageHeight
 				}]
@@ -7870,9 +7871,12 @@ var Puzzle = function () {
 			var grid = new _Gridistribution2.default(this.gridProps);
 			// 提取随机格子
 			var cells = grid.pick(this.cliparts.length);
-			while (cells.length === 0) {
+			var count = 0;
+			var width = this.gridProps.cell.width;
+			while (cells.length === 0 && ++count < 10) {
 				// 面积不够，取一半值
-				this.gridProps.cell.width *= .8;
+				width = width * .8;
+				this.gridProps.cell.width = width;
 				grid.reset(this.gridProps);
 				cells = grid.pick(this.cliparts.length);
 			}
@@ -7888,7 +7892,7 @@ var Puzzle = function () {
 
 			// 舞台添加事件
 			this.stage.interactive = true;
-			this.stage.on("touchmove", function (_ref2) {
+			this.stage.on(this.touchmove, function (_ref2) {
 				var data = _ref2.data,
 				    endPosition = _ref2.data.global;
 
@@ -7908,7 +7912,7 @@ var Puzzle = function () {
 				}
 			});
 
-			this.stage.on("touchend", function (e) {
+			this.stage.on(this.touchend, function (e) {
 				if (activeClipart === null) return;
 				// 吸附效果 
 				if (Math.abs(activeClipart.x - activeClipart.selected.left) <= 15 && Math.abs(activeClipart.y - activeClipart.selected.top) <= 15) {
@@ -7957,7 +7961,7 @@ var Puzzle = function () {
 				// 开启点击检测
 				sprite.interactive = true;
 				// 添加事件
-				sprite.on("touchstart", function (_ref3) {
+				sprite.on(_this4.touchstart, function (_ref3) {
 					var data = _ref3.data,
 					    position = _ref3.data.global;
 
@@ -8141,7 +8145,7 @@ var Puzzle = function () {
 			// 创建一条时间轴
 			if (this.shellTimeline === undefined) {
 				// 礼花随机位置
-				this.gridProps.cell.width = 20;
+				this.gridProps.cell.width = 12;
 				var rnd = new _Gridistribution2.default(this.gridProps).pick(this.fireworks.length);
 				// 时间轴数组
 				var tls = rnd.map(function (_ref4, index) {
@@ -8180,6 +8184,8 @@ var Puzzle = function () {
 			_timer2.default.clean();
 			TweenMax.killAll();
 			this.destroyChildren(this.stage);
+			this.stage.off(this.touchmove);
+			this.stage.off(this.touchend);
 			// 销毁所有的纹理
 			PIXI.utils.destroyTextureCache();
 			// 删除加载记录
@@ -8223,6 +8229,12 @@ var Puzzle = function () {
 			});
 			this.negative && this.negative.destroy();
 		}
+
+		// 倒计时
+
+	}, {
+		key: 'countdown',
+		value: function countdown() {}
 
 		// 暂停
 
