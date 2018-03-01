@@ -7970,7 +7970,14 @@ var Puzzle = function () {
 					var left = activeClipart.x0 + endPosition.x - startPosition.x;
 					var top = activeClipart.y0 + endPosition.y - startPosition.y;
 					// 负坐标中断
-					if (left < -_this4.puzzle.x) return;
+					if (left < -_this4.puzzle.x) {
+						// 当前索引
+						var index = activeClipart.selected.parent.getChildIndex(activeClipart.selected);
+						// 移除选中拼块
+						_this4.puzzle.removeChild(activeClipart.selected);
+						_this4.puzzle.addChildAt(activeClipart.sprite, index);
+						return;
+					}
 					activeClipart.selected.set({
 						rotate: activeClipart.rotate,
 						left: left,
