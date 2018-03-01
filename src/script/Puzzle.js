@@ -7573,10 +7573,12 @@ var Puzzle = function () {
 			this.touchstart = "touchstart";
 			this.touchmove = "touchmove";
 			this.touchend = "touchend";
+			this.tap = "tap";
 		} else {
 			this.touchstart = "mousedown";
 			this.touchmove = "mousemove";
 			this.touchend = "mouseup";
+			this.tap = "click";
 		}
 
 		// 全屏适配
@@ -7695,7 +7697,7 @@ var Puzzle = function () {
 			this.switch.set({ width: 32, height: 32, y: 6, x: this.width - 36 });
 			this.stage.addChild(this.switch);
 			this.switch.interactive = true;
-			this.switch.on("tap", function (e) {
+			this.switch.on(this.tap, function (e) {
 				return _this2.paused === true ? _this2.turnOn() : _this2.turnOff();
 			});
 		}
