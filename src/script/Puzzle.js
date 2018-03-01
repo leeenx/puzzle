@@ -7617,6 +7617,9 @@ var Puzzle = function () {
 		// 事件
 		this.event = new _Event2.default();
 
+		// 默认倒计时长
+		this.totalTime = 60;
+
 		// 做挂起监听
 		document.addEventListener("visibilitychange", function (e) {
 			e.hidden === true ? _this.pause() : _this.resume();
@@ -7636,7 +7639,6 @@ var Puzzle = function () {
 				pivotX: this.imageWidth / 2,
 				pivotY: this.imageHeight / 2
 			});
-
 			// 加入舞台
 			this.stage.addChild(this.puzzle);
 
@@ -7676,11 +7678,19 @@ var Puzzle = function () {
 					_this2.fireworks[i] = shell;
 				}
 			});
+			// 时间进度条容器
+			this.timeProgressBack = new PIXI.Graphics();
+			this.timeProgressBack.beginFill(0x6190e7, 1).drawRect(0, 0, this.width, 5);
+			this.timeProgressFront = new PIXI.Graphics();
+			this.timeProgressFront.beginFill(0x70BF41, 1).drawRect(0, 0, this.width, 5);
+			this.timeProgressFront.scaleX = 0;
+			this.timeProgressBack.addChild(this.timeProgressFront);
+			this.stage.addChild(this.timeProgressBack);
 		}
-		// 进入对应的图片
-
 	}, {
 		key: 'enter',
+
+		// 进入对应的图片
 		value: function enter(picture) {
 			var _this3 = this;
 
@@ -7693,6 +7703,11 @@ var Puzzle = function () {
 			}
 			// 销毁上次的拼块
 			this.destroyCliparts();
+			// 清空倒计时
+			_timer2.default.delete(this.timer);
+			// 重置时长 
+			this.currentTime = this.totalTime;
+
 			this.showLoading();
 			PIXI.loader.add(picture).load(function () {
 				// 生成拼图的底层纹理 
@@ -7725,8 +7740,11 @@ var Puzzle = function () {
 				}, {
 					scaleX: 1,
 					scaleY: 1,
+					// 拼图分散后，倒计时开始
 					onComplete: function onComplete() {
-						return _this3.break();
+						return _this3.break().then(function (e) {
+							return _this3.countdown();
+						});
 					}
 				});
 			});
@@ -7952,6 +7970,9 @@ var Puzzle = function () {
 				startPosition = null;
 			});
 
+			// 动画数组 
+			var tweens = [];
+
 			// 分布
 			this.cliparts.forEach(function (clipart, index) {
 				// 拼块
@@ -8014,9 +8035,17 @@ var Puzzle = function () {
 					rotate: clipart.rotate
 
 					// 拼块
-				};TweenMax.to(sprite, .6, props);
+					// TweenMax.to(sprite, .6, props); 
+				};tweens.push(TweenMax.to(sprite, .3, props));
 				// 选中拼块信息同步
 				selected.set(props);
+			});
+			// 返回 Promise
+			return new Promise(function (resolve, reject) {
+				var tl = new TimelineLite();
+				tl.add(tweens, 0, "start", .01).call(function (e) {
+					return resolve();
+				});
 			});
 		}
 		// 安装拼块
@@ -8234,7 +8263,22 @@ var Puzzle = function () {
 
 	}, {
 		key: 'countdown',
-		value: function countdown() {}
+		value: function countdown() {
+			var _this8 = this;
+
+			this.timer = _timer2.default.setInterval(function (e) {
+				_this8.currentTime -= .1;
+				if (_this8.currentTime > 0) {
+					_this8.timeProgress = _this8.currentTime;
+				}
+				// 游戏结束
+				else {
+						_this8.pause();
+						_timer2.default.delete(_this8.timer);
+						_this8.event.dispatch("gameover", "超时");
+					}
+			}, 100);
+		}
 
 		// 暂停
 
@@ -8266,6 +8310,12 @@ var Puzzle = function () {
 				this._difficulty = value;
 				this.setDifficulty();
 			}
+		}
+	}, {
+		key: 'timeProgress',
+		set: function set(value) {
+			var percent = (this.totalTime - value) / this.totalTime;
+			this.timeProgressFront.scaleX = percent > 1 ? 1 : percent;
 		}
 	}]);
 

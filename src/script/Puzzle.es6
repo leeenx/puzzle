@@ -66,6 +66,9 @@ class Puzzle {
 		// 事件
 		this.event = new Event(); 
 
+		// 默认倒计时长
+		this.totalTime = 60; 
+
 		// 做挂起监听
 		document.addEventListener("visibilitychange", e => {
 		    e.hidden === true ? this.pause() : this.resume(); 
@@ -91,7 +94,6 @@ class Puzzle {
 				pivotY: this.imageHeight / 2 
 			}
 		); 
-
 		// 加入舞台
 		this.stage.addChild(this.puzzle); 
 
@@ -139,7 +141,19 @@ class Puzzle {
 					this.fireworks[i] = shell; 
 				}
 			}); 
+		// 时间进度条容器
+		this.timeProgressBack = new PIXI.Graphics(); 
+		this.timeProgressBack.beginFill(0x6190e7, 1).drawRect(0, 0, this.width, 5); 
+		this.timeProgressFront = new PIXI.Graphics(); 
+		this.timeProgressFront.beginFill(0x70BF41, 1).drawRect(0, 0, this.width, 5); 
+		this.timeProgressFront.scaleX = 0;  
+		this.timeProgressBack.addChild(this.timeProgressFront); 
+		this.stage.addChild(this.timeProgressBack); 
 	}
+	set timeProgress(value) {
+		let percent = (this.totalTime - value) / this.totalTime; 
+		this.timeProgressFront.scaleX = percent > 1 ? 1 : percent; 
+	} 
 	// 进入对应的图片
 	enter(picture) { 
 		// 未加载成功 
@@ -149,6 +163,11 @@ class Puzzle {
 		}
 		// 销毁上次的拼块
 		this.destroyCliparts(); 
+		// 清空倒计时
+		timer.delete(this.timer); 
+		// 重置时长 
+		this.currentTime = this.totalTime; 
+
 		this.showLoading(); 
 		PIXI.loader.add(picture).load(() => { 
 			// 生成拼图的底层纹理 
@@ -188,7 +207,8 @@ class Puzzle {
 				{
 					scaleX: 1, 
 					scaleY: 1, 
-					onComplete: ()=> this.break()
+					// 拼图分散后，倒计时开始
+					onComplete: ()=> this.break().then(e => this.countdown())
 				}
 			); 
 		}); 
@@ -408,6 +428,9 @@ class Puzzle {
 			activeClipart = null; 
 			startPosition = null; 
 		}); 
+
+		// 动画数组 
+		let tweens = []; 
 		
 		// 分布
 		this.cliparts.forEach((clipart, index) => { 
@@ -465,10 +488,18 @@ class Puzzle {
 			}
 
 			// 拼块
-			TweenMax.to(sprite, .6, props); 
+			// TweenMax.to(sprite, .6, props); 
+			tweens.push(TweenMax.to(sprite, .3, props)); 
 			// 选中拼块信息同步
 			selected.set(props); 
 		}); 
+		// 返回 Promise
+		return new Promise(
+			(resolve, reject) => {
+				let tl = new TimelineLite(); 
+				tl.add(tweens, 0, "start", .01).call(e => resolve())
+			}
+		); 
 	}
 	// 安装拼块
 	fit(clipart) {
@@ -667,7 +698,18 @@ class Puzzle {
 
 	// 倒计时
 	countdown() {
-
+		this.timer = timer.setInterval(e => { 
+			this.currentTime -= .1; 
+			if(this.currentTime > 0) {
+				this.timeProgress = this.currentTime
+			}
+			// 游戏结束
+			else { 
+				this.pause(); 
+				timer.delete(this.timer); 
+				this.event.dispatch("gameover", "超时"); 
+			}
+		}, 100); 
 	}
 
 	// 暂停

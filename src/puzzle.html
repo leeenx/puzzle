@@ -185,6 +185,11 @@
 		}
 	}); 
 
+	// 游戏结束
+	puzzle.event.on("gameover", function() {
+		alert("超时了"); 
+	}); 
+
 	// 难度选项
 	var difficultyOpts = document.querySelectorAll(".puzzle_difficulty"); 
 	difficultyOpts.forEach(function(opt) {
@@ -212,6 +217,8 @@
 
 	// 默认进入第一张图
 	puzzle.init(); 
+	// 设置倒计时
+	puzzle.totalTime = 120; 
 }(); 
 
 
