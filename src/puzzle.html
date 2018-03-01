@@ -53,8 +53,11 @@
 		<canvas class="puzzle_game" id="puzzleGame"></canvas>
 		<!-- 暂停时的广告 -->
 		<div class="puzzle_ad" id="puzzleAd">
-			<a href="//jd.com"><img src="images/ad@2x.jpg" /></a>
-			<div class="puzzle_ad_close" id="puzzleAdClose"></div>
+			<div class="puzzle_ad_main">
+				<a href="//jd.com"><img src="images/ad@2x.jpg" /></a>
+				<div class="puzzle_ad_close" onclick="puzzle.turnOn()"></div>
+			</div>
+			<div class="puzzle_ad_back" onclick="back()"></div>
 		</div>
 	</div>
 </body>
@@ -156,8 +159,14 @@
 		}, 600); 
 	}
 
+	// 返回
+	window.back = function() {
+		puzzleAd.style.display = "none"; 
+		puzzleGame.className = "puzzle_game"; 
+	}
+
 	// 更新记录
-	window.updateRecord = function() {
+	var updateRecord = function() {
 		localStorage.setItem("puzzle-record", JSON.stringify(record)); 
 	}
 
@@ -167,10 +176,16 @@
 		difficulty = difficulty > 1 ? difficulty : 1; 
 		difficultyOpts[difficulty - 1].checked = "checked"; 
 		puzzle.difficulty = difficulty; 
+		puzzle.totalTime = difficulty * 120; 
 	}
 
 	// 创建拼图对象
 	var puzzle = new Puzzle(); 
+
+	// 默认进入第一张图
+	puzzle.init(); 
+	// 设置倒计时
+	puzzle.totalTime = 60; 
 
 	// 通关
 	puzzle.event.on("pass", function() { 
@@ -188,6 +203,16 @@
 	// 游戏结束
 	puzzle.event.on("gameover", function() {
 		alert("超时了"); 
+	}); 
+
+	// 暂停显示广告
+	puzzle.event.on("pause", function() {
+		puzzleAd.style.display = "block"; 
+	}); 
+
+	// 恢复隐藏广告
+	puzzle.event.on("resume", function() {
+		puzzleAd.style.display = "none"; 
 	}); 
 
 	// 难度选项
@@ -215,10 +240,7 @@
 		resumeGame.className = "puzzle_btn disabled"; 
 	} 
 
-	// 默认进入第一张图
-	puzzle.init(); 
-	// 设置倒计时
-	puzzle.totalTime = 120; 
+	window.puzzle = puzzle; 
 }(); 
 
 

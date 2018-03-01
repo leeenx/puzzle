@@ -213,18 +213,38 @@ html, body {
 
 .puzzle_ad {
 	position: fixed; 
+	width: 100%; 
+	height: 100%; 
+	top: 0; 
+	left: 0; 
+	display: none; 
+	background-color: rgba(0, 0, 0, .7); 
+	z-index: 3; 
+}
+
+.puzzle_ad_main {
+	position: absolute; 
 	width: 300px; 
-	height: auto; 
+	height: 543px; 
 	top: 50%; 
 	left: 50%; 
-	-webkit-transform: translate(-50%, -50%); 
-	display: none; 
+	-webkit-transform: translate(-50%, -50%) scale(.8);
+}
+
+.puzzle_ad_back {
+	position: absolute; 
+	width: 32px; 
+	height: 32px; 
+	background: url(../images/back.png) 0 0 no-repeat; 
+	background-size: 100% 100%; 
+	top: 20px; 
+	left: 20px; 
 }
 
 .puzzle_ad img {
 	display: block; 
 	width: 100%; 
-	margin: auto; 
+	height: 100%; 
 }
 
 .puzzle_ad_close {
@@ -235,7 +255,8 @@ html, body {
 	top: -12px; 
 	right: -12px; 
 	border-radius: 100%; 
-	border: 1px solid rgba(255, 255, 255, 1);
+	border: 1px solid rgba(255, 255, 255, 1); 
+	-webkit-transform: scale(1.5);
 }
 
 .puzzle_ad_close::before, .puzzle_ad_close::after {

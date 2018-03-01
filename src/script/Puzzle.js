@@ -7622,7 +7622,7 @@ var Puzzle = function () {
 
 		// 做挂起监听
 		document.addEventListener("visibilitychange", function (e) {
-			e.hidden === true ? _this.pause() : _this.resume();
+			e.hidden === true ? _this.pause() : _this.isOff !== true && _this.resume();
 		}, true);
 	}
 
@@ -7649,7 +7649,7 @@ var Puzzle = function () {
 			this.cliparts = [];
 			var loader = new PIXI.loaders.Loader();
 			// 加载必须图片
-			loader.add([{ name: "shade", url: "images/shade.jpg" }, { name: "clipart", url: "images/clipart.png" }]).load(function () {
+			loader.add([{ name: "shade", url: "images/shade.jpg" }, { name: "clipart", url: "images/clipart.png" }, { name: "pause", url: "images/pause@2x.png" }, { name: "play", url: "images/play@2x.png" }]).load(function () {
 				var shade = new PIXI.Sprite(PIXI.utils.TextureCache["shade"]);
 				shade.set({
 					alpha: .99,
@@ -7657,6 +7657,10 @@ var Puzzle = function () {
 					height: _this2.height
 				});
 				_this2.stage.addChildAt(shade, 0);
+				// 开关
+				_this2.on = PIXI.utils.TextureCache["play"];
+				_this2.off = PIXI.utils.TextureCache["pause"];
+				_this2.switch.texture = _this2.paused === true ? _this2.on : _this2.off;
 				_this2.loaded = true;
 				// 生成礼花
 				_this2.fireworks = [];
@@ -7686,6 +7690,32 @@ var Puzzle = function () {
 			this.timeProgressFront.scaleX = 0;
 			this.timeProgressBack.addChild(this.timeProgressFront);
 			this.stage.addChild(this.timeProgressBack);
+			// 暂停按钮
+			this.switch = new PIXI.Sprite();
+			this.switch.set({ width: 32, height: 32, y: 6, x: this.width - 36 });
+			this.stage.addChild(this.switch);
+			this.switch.interactive = true;
+			this.switch.on("tap", function (e) {
+				return _this2.paused === true ? _this2.turnOn() : _this2.turnOff();
+			});
+		}
+	}, {
+		key: 'turnOn',
+		value: function turnOn() {
+			this.resume();
+			this.switch.texture = this.off;
+			this.event.dispatch("resume");
+			this.isOff = false;
+			this.renderer.render(this.stage);
+		}
+	}, {
+		key: 'turnOff',
+		value: function turnOff() {
+			this.pause();
+			this.switch.texture = this.on;
+			this.event.dispatch("pause");
+			this.isOff = true;
+			this.renderer.render(this.stage);
 		}
 	}, {
 		key: 'enter',
@@ -7707,9 +7737,17 @@ var Puzzle = function () {
 			_timer2.default.delete(this.timer);
 			// 重置时长 
 			this.currentTime = this.totalTime;
+			this.timeProgressFront.scaleX = 0;
+
+			// 清空所有动画
+			TweenMax.killAll();
+
+			// 如果暂停了，恢复
+			this.isOff === true && this.turnOn();
 
 			this.showLoading();
-			PIXI.loader.add(picture).load(function () {
+
+			var afterLoad = function afterLoad() {
 				// 生成拼图的底层纹理 
 				var originBase = new PIXI.Sprite(PIXI.utils.TextureCache[picture]);
 				// 重置尺寸 
@@ -7747,7 +7785,9 @@ var Puzzle = function () {
 						});
 					}
 				});
-			});
+			};
+
+			PIXI.loader.resources[picture] ? afterLoad() : PIXI.loader.add(picture).load(afterLoad);
 		}
 
 		// 设置难度
@@ -7878,6 +7918,13 @@ var Puzzle = function () {
 				},
 				// 标记禁区
 				rectangles: [
+				// 右上角暂停按钮
+				{
+					x: this.width - 36,
+					y: 0,
+					width: 36,
+					height: 36
+				},
 				// 中心拼图底图区
 				{
 					x: (this.width - this.imageWidth) / 2,
@@ -8159,6 +8206,7 @@ var Puzzle = function () {
 		value: function pass() {
 			var _this5 = this;
 
+			_timer2.default.delete(this.timer);
 			this.displayShell().then(function (e) {
 				return _this5.event.dispatch("pass", "通关");
 			});

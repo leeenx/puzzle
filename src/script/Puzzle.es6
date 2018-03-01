@@ -71,7 +71,7 @@ class Puzzle {
 
 		// 做挂起监听
 		document.addEventListener("visibilitychange", e => {
-		    e.hidden === true ? this.pause() : this.resume(); 
+		    e.hidden === true ? this.pause() : this.isOff !== true && this.resume(); 
 		}, true); 
 	}
 	get difficulty() {
@@ -108,6 +108,8 @@ class Puzzle {
 				[
 					{name: "shade", url: "images/shade.jpg"}, 
 					{name: "clipart", url: "images/clipart.png"}, 
+					{name: "pause", url: "images/pause@2x.png"}, 
+					{name: "play", url: "images/play@2x.png"}
 				]
 			)
 			.load(() => {
@@ -120,6 +122,10 @@ class Puzzle {
 					}
 				); 
 				this.stage.addChildAt(shade, 0); 
+				// 开关
+				this.on = PIXI.utils.TextureCache["play"]; 
+				this.off = PIXI.utils.TextureCache["pause"]; 
+				this.switch.texture = this.paused === true ? this.on : this.off; 
 				this.loaded = true; 
 				// 生成礼花
 				this.fireworks = []; 
@@ -149,6 +155,26 @@ class Puzzle {
 		this.timeProgressFront.scaleX = 0;  
 		this.timeProgressBack.addChild(this.timeProgressFront); 
 		this.stage.addChild(this.timeProgressBack); 
+		// 暂停按钮
+		this.switch = new PIXI.Sprite(); 
+		this.switch.set({width: 32, height: 32, y: 6, x: this.width - 36}); 
+		this.stage.addChild(this.switch); 
+		this.switch.interactive = true; 
+		this.switch.on("tap", e => this.paused === true ? this.turnOn() : this.turnOff()); 
+	}
+	turnOn() {
+		this.resume(); 
+		this.switch.texture = this.off; 
+		this.event.dispatch("resume"); 
+		this.isOff = false; 
+		this.renderer.render(this.stage); 
+	}
+	turnOff() {
+		this.pause(); 
+		this.switch.texture = this.on; 
+		this.event.dispatch("pause"); 
+		this.isOff = true; 
+		this.renderer.render(this.stage); 
 	}
 	set timeProgress(value) {
 		let percent = (this.totalTime - value) / this.totalTime; 
@@ -167,9 +193,17 @@ class Puzzle {
 		timer.delete(this.timer); 
 		// 重置时长 
 		this.currentTime = this.totalTime; 
+		this.timeProgressFront.scaleX = 0; 
+
+		// 清空所有动画
+		TweenMax.killAll(); 
+
+		// 如果暂停了，恢复
+		this.isOff === true && this.turnOn(); 
 
 		this.showLoading(); 
-		PIXI.loader.add(picture).load(() => { 
+
+		let afterLoad = () => { 
 			// 生成拼图的底层纹理 
 			let originBase = new PIXI.Sprite(PIXI.utils.TextureCache[picture]); 
 			// 重置尺寸 
@@ -211,7 +245,9 @@ class Puzzle {
 					onComplete: ()=> this.break().then(e => this.countdown())
 				}
 			); 
-		}); 
+		};
+
+		PIXI.loader.resources[picture] ? afterLoad() : PIXI.loader.add(picture).load(afterLoad); 
 	}
 
 	// 设置难度
@@ -334,7 +370,14 @@ class Puzzle {
 				width: this.clipart.width * .8
 			}, 
 			// 标记禁区
-			rectangles: [  
+			rectangles: [ 
+				// 右上角暂停按钮
+				{
+					x: this.width - 36, 
+					y: 0, 
+					width: 36, 
+					height: 36
+				}, 
 				// 中心拼图底图区
 				{
 					x: (this.width - this.imageWidth) / 2, 
@@ -606,7 +649,8 @@ class Puzzle {
 			this.pass(); 
 		}
 	}
-	pass() {
+	pass() { 
+		timer.delete(this.timer); 
 		this.displayShell().then(e => this.event.dispatch("pass", "通关")); 
 	}
 	// 礼花
