@@ -24,11 +24,13 @@ class Puzzle {
 			this.touchstart = "touchstart"; 
 			this.touchmove = "touchmove"; 
 			this.touchend = "touchend"; 
+			this.tap = "tap"; 
 		}
 		else {
 			this.touchstart = "mousedown"; 
 			this.touchmove = "mousemove"; 
 			this.touchend = "mouseup"; 
+			this.tap = "click"; 
 		}
 
 		// 全屏适配
@@ -160,7 +162,7 @@ class Puzzle {
 		this.switch.set({width: 32, height: 32, y: 6, x: this.width - 36}); 
 		this.stage.addChild(this.switch); 
 		this.switch.interactive = true; 
-		this.switch.on("tap", e => this.paused === true ? this.turnOn() : this.turnOff()); 
+		this.switch.on(this.tap, e => this.paused === true ? this.turnOn() : this.turnOff()); 
 	}
 	turnOn() {
 		this.resume(); 
