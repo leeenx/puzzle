@@ -420,13 +420,14 @@ class Puzzle {
 				}
 				let left = activeClipart.x0 + endPosition.x - startPosition.x; 
 				let top = activeClipart.y0 + endPosition.y - startPosition.y; 
-				// 负坐标中断
+				// 侧滑会导致负坐标直接调用touchend
 				if(left < -this.puzzle.x) {
-					// 当前索引
-					let index = activeClipart.selected.parent.getChildIndex(activeClipart.selected); 
-					// 移除选中拼块
-					this.puzzle.removeChild(activeClipart.selected); 
-					this.puzzle.addChildAt(activeClipart.sprite, index); 
+					// // 当前索引
+					// let index = activeClipart.selected.parent.getChildIndex(activeClipart.selected); 
+					// // 移除选中拼块
+					// this.puzzle.removeChild(activeClipart.selected); 
+					// this.puzzle.addChildAt(activeClipart.sprite, index); 
+					touchendHandle({data}); 
 					return ;
 				}
 				activeClipart.selected.set(
@@ -439,7 +440,7 @@ class Puzzle {
 			}
 		}); 
 
-		this.stage.on(this.touchend, e => { 
+		let touchendHandle = e => { 
 			if(activeClipart === null) return ;
 			// 吸附效果 
 			if(Math.abs(activeClipart.x - activeClipart.selected.left) <= 15 && Math.abs(activeClipart.y - activeClipart.selected.top) <= 15) {
@@ -479,7 +480,9 @@ class Puzzle {
 			// 清空对象
 			activeClipart = null; 
 			startPosition = null; 
-		}); 
+		}; 
+
+		this.stage.on(this.touchend, touchendHandle); 
 
 		// 动画数组 
 		let tweens = []; 

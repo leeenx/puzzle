@@ -7969,13 +7969,14 @@ var Puzzle = function () {
 					}
 					var left = activeClipart.x0 + endPosition.x - startPosition.x;
 					var top = activeClipart.y0 + endPosition.y - startPosition.y;
-					// 负坐标中断
+					// 侧滑会导致负坐标直接调用touchend
 					if (left < -_this4.puzzle.x) {
-						// 当前索引
-						var index = activeClipart.selected.parent.getChildIndex(activeClipart.selected);
-						// 移除选中拼块
-						_this4.puzzle.removeChild(activeClipart.selected);
-						_this4.puzzle.addChildAt(activeClipart.sprite, index);
+						// // 当前索引
+						// let index = activeClipart.selected.parent.getChildIndex(activeClipart.selected); 
+						// // 移除选中拼块
+						// this.puzzle.removeChild(activeClipart.selected); 
+						// this.puzzle.addChildAt(activeClipart.sprite, index); 
+						touchendHandle({ data: data });
 						return;
 					}
 					activeClipart.selected.set({
@@ -7986,7 +7987,7 @@ var Puzzle = function () {
 				}
 			});
 
-			this.stage.on(this.touchend, function (e) {
+			var touchendHandle = function touchendHandle(e) {
 				if (activeClipart === null) return;
 				// 吸附效果 
 				if (Math.abs(activeClipart.x - activeClipart.selected.left) <= 15 && Math.abs(activeClipart.y - activeClipart.selected.top) <= 15) {
@@ -8024,7 +8025,9 @@ var Puzzle = function () {
 				// 清空对象
 				activeClipart = null;
 				startPosition = null;
-			});
+			};
+
+			this.stage.on(this.touchend, touchendHandle);
 
 			// 动画数组 
 			var tweens = [];
