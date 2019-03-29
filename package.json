@@ -1,0 +1,41 @@
+{
+  "name": "puzzle.lee",
+  "version": "1.0.1",
+  "description": "拼图",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "webpack-dev-server --config webpack.config.js",
+    "build": "webpack --config webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leeenx/puzzle.git"
+  },
+  "keywords": [
+    "puzzle",
+    "h5",
+    "game"
+  ],
+  "author": "leeenx",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/leeenx/puzzle/issues"
+  },
+  "homepage": "https://github.com/leeenx/puzzle#readme",
+  "dependencies": {
+    "@babel/core": "^7.4.0",
+    "@babel/polyfill": "^7.4.0",
+    "@babel/preset-env": "^7.4.2",
+    "babel-loader": "^8.0.5",
+    "clean-webpack-plugin": "^2.0.1",
+    "css-loader": "^2.1.1",
+    "eslint": "^5.15.3",
+    "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "file-loader": "^3.0.1",
+    "html-webpack-plugin": "^3.2.0",
+    "style-loader": "^0.23.1",
+    "webpack": "^4.29.6",
+    "webpack-dev-server": "^3.2.1"
+  }
+}

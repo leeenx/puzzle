@@ -4,13 +4,17 @@
 */
 
 // 向前兼容
-import 'babel-polyfill'; 
+import 'babel-polyfill';
+
+import * as PIXI from './lib/pixi'
+import filters from './lib/pixi-extra-filters'
+import { TweenMax, TimelineLite, Linear } from './lib/gsap/TweenMax'
 
 // 安装模块
-import './lib/utils.es6'; 
-import Gridistribution from './lib/Gridistribution.es6'; 
-import timer from './lib/timer.es6'; 
-import Event from './lib/Event.es6'; 
+import './lib/utils';
+import Gridistribution from './lib/Gridistribution';
+import timer from './lib/timer';
+import Event from './lib/Event';
 
 PIXI.utils.skipHello(); 
 
@@ -20,17 +24,17 @@ class Puzzle {
 		this.height = 603; 
 
 		// 事件兼容
-		if(window.hasOwnProperty("ontouchstart") === true) {
-			this.touchstart = "touchstart"; 
-			this.touchmove = "touchmove"; 
-			this.touchend = "touchend"; 
-			this.tap = "tap"; 
+		if(window.hasOwnProperty('ontouchstart') === true) {
+			this.touchstart = 'touchstart'; 
+			this.touchmove = 'touchmove'; 
+			this.touchend = 'touchend'; 
+			this.tap = 'tap'; 
 		}
 		else {
-			this.touchstart = "mousedown"; 
-			this.touchmove = "mousemove"; 
-			this.touchend = "mouseup"; 
-			this.tap = "click"; 
+			this.touchstart = 'mousedown'; 
+			this.touchmove = 'mousemove'; 
+			this.touchend = 'mouseup'; 
+			this.tap = 'click'; 
 		}
 
 		// 全屏适配
@@ -45,9 +49,10 @@ class Puzzle {
 			this.width = this.height * clientRatio; 
 		}
 
-		// 拼图尺寸 
+		// 拼图尺寸
 		this.imageWidth = 300 * .88 >> 0; 
-		this.imageHeight = 450 * .88 >> 0; 
+		this.imageHeight = 450 * .88 >> 0;
+		
 		// 图片与视窗的比率 
 		this.imageRatio = this.imageWidth / this.width; 
 
@@ -56,7 +61,7 @@ class Puzzle {
 				width: this.width, 
 				height: this.height, 
 				transparent: true, 
-				view: document.getElementById("puzzleGame"), 
+				view: document.getElementById('puzzleGame'), 
 				antialias: true
 			}
 		); 
@@ -72,7 +77,7 @@ class Puzzle {
 		this.totalTime = 60; 
 
 		// 做挂起监听
-		document.addEventListener("visibilitychange", e => {
+		document.addEventListener('visibilitychange', e => {
 		    e.hidden === true ? this.pause() : this.isOff !== true && this.resume(); 
 		}, true); 
 	}
@@ -108,14 +113,14 @@ class Puzzle {
 		// 加载必须图片
 		loader.add(
 				[
-					{name: "shade", url: "images/shade.jpg"}, 
-					{name: "clipart", url: "images/clipart.png"}, 
-					{name: "pause", url: "images/pause@2x.png"}, 
-					{name: "play", url: "images/play@2x.png"}
+					{name: 'shade', url: require('../images/shade.jpg')}, 
+					{name: 'clipart', url: require('../images/clipart.png')}, 
+					{name: 'pause', url: require('../images/pause@2x.png')}, 
+					{name: 'play', url: require('../images/play@2x.png')}
 				]
 			)
 			.load(() => {
-				let shade = new PIXI.Sprite(PIXI.utils.TextureCache["shade"]); 
+				let shade = new PIXI.Sprite(PIXI.utils.TextureCache['shade']); 
 				shade.set(
 					{
 						alpha: .99, 
@@ -125,8 +130,8 @@ class Puzzle {
 				); 
 				this.stage.addChildAt(shade, 0); 
 				// 开关
-				this.on = PIXI.utils.TextureCache["play"]; 
-				this.off = PIXI.utils.TextureCache["pause"]; 
+				this.on = PIXI.utils.TextureCache['play']; 
+				this.off = PIXI.utils.TextureCache['pause']; 
 				this.switch.texture = this.paused === true ? this.on : this.off; 
 				this.loaded = true; 
 				// 生成礼花
@@ -139,7 +144,7 @@ class Puzzle {
 				    let rb = Math.random() * 0xFF | 0; 
 				    let width = 80; 
 				    let height = 80; 
-				    let mask = new PIXI.Sprite(PIXI.utils.TextureCache["clipart"]); 
+				    let mask = new PIXI.Sprite(PIXI.utils.TextureCache['clipart']); 
 				    mask.set({width: width, height: height}); 
 					rect.beginFill((rr << 16) + (rg << 8) + rb, 1).drawRect(0, 0, width, height); 
 					let sprite = new PIXI.Sprite(rect.generateCanvasTexture()); 
@@ -167,14 +172,14 @@ class Puzzle {
 	turnOn() {
 		this.resume(); 
 		this.switch.texture = this.off; 
-		this.event.dispatch("resume"); 
+		this.event.dispatch('resume'); 
 		this.isOff = false; 
 		this.renderer.render(this.stage); 
 	}
 	turnOff() {
 		this.pause(); 
 		this.switch.texture = this.on; 
-		this.event.dispatch("pause"); 
+		this.event.dispatch('pause'); 
 		this.isOff = true; 
 		this.renderer.render(this.stage); 
 	}
@@ -183,7 +188,7 @@ class Puzzle {
 		this.timeProgressFront.scaleX = percent > 1 ? 1 : percent; 
 	} 
 	// 进入对应的图片
-	enter(picture) { 
+	enter(picture) {
 		// 未加载成功 
 		if(this.loaded !== true) { 
 			setTimeout(()=> this.enter(picture, difficulty), 100); 
@@ -205,7 +210,7 @@ class Puzzle {
 
 		this.showLoading(); 
 
-		let afterLoad = () => { 
+		let afterLoad = () => {
 			// 生成拼图的底层纹理 
 			let originBase = new PIXI.Sprite(PIXI.utils.TextureCache[picture]); 
 			// 重置尺寸 
@@ -262,13 +267,18 @@ class Puzzle {
 		/*
 			@ 计算拼块的尺寸
 			@ 原始大小: 300x300
-			@ 镂空为 80
+			@ 镂空尺寸为 65
+			@ (拼图宽 + 2个镂空) / 列数 = 拼块宽 - 镂空
+			@ 镂空 / 拼块宽 = 65 / 300
 		*/
 		this.clipart = {}; 
 		// 按照难度剪裁后的宽度 
-		let width = this.imageWidth / (this.col - 80 / 300); 
-		this.clipart.clipWidth = width * 80 / 300; 
-		this.clipart.width = this.clipart.height = width + this.clipart.clipWidth; 
+		const width = this.imageWidth / (this.col * 235 / 300 - 65 * 2 / 300) >> 0;
+		const clipWidth = width * 65 / 300 >> 0; 
+		Object.assign(
+			this.clipart,
+			{ width, height: width, clipWidth}
+		)
 	}
 
 	// 显示加载
@@ -299,7 +309,7 @@ class Puzzle {
 					x: x, 
 					y: y
 				}; 
-				let mask = new PIXI.Sprite(PIXI.utils.TextureCache["clipart"]); 
+				let mask = new PIXI.Sprite(PIXI.utils.TextureCache['clipart']); 
 				this.stage.addChild(mask); 
 				mask.width = mask.height = this.clipart.width; 
 				if(0 === row) {
@@ -309,7 +319,7 @@ class Puzzle {
 				if(0 === col) {
 					clipart.width -= this.clipart.clipWidth; 
 					mask.x = -this.clipart.clipWidth; 
-				} 
+				}
 				// 对底纹进行裁剪
 				{ 
 					let x = clipart.x; 
@@ -332,6 +342,7 @@ class Puzzle {
 					// 被选中的拼块
 					clipart.selected = new PIXI.Sprite(clipart.sprite.texture); 
 				} 
+				// console.log(col, row, x, y)
 				this.cliparts.push(clipart); 
 				clipart.sprite.set(
 					{
@@ -344,7 +355,7 @@ class Puzzle {
 				clipart.selected.set(
 					{ 
 						mask: mask, 
-						filters: [new PIXI.filters.GlowFilter(10, 1.5, 1.5, 0x333333, .3)], 
+						filters: [new filters.GlowFilter(10, 1.5, 1.5, 0x333333, .3)], 
 						cacheAsBitmap: true 
 					}
 				); 
@@ -360,7 +371,7 @@ class Puzzle {
 		}
 	}
 	// 打散拼块
-	break() { 
+	break() {
 		// this.puzzle 的坐标
 		let bounds = this.puzzle.getBounds(); 
 		let [x, y] = [bounds.x, bounds.y]; 
@@ -405,15 +416,21 @@ class Puzzle {
 		// 显示底片
 		this.negative.visible = true; 
 
-		// 手指下的拼块
-		let activeClipart = null; 
+		// 手指下的拼块（multiple touch）
+		let activeCliparts = []; 
 
-		// 起始坐标
-		let startPosition = null; 
+		// 起始坐标（multiple touch）
+		let startPositions = []; 
 
 		// 舞台添加事件
 		this.stage.interactive = true; 
-		this.stage.on(this.touchmove, ({data, data: {global: endPosition}}) => { 
+		this.stage.on(
+			this.touchmove,
+			({
+				data, data: { global: endPosition, identifier }
+			}) => {
+			const activeClipart = activeCliparts[identifier] || null
+			const startPosition = startPositions[identifier] || null
 			if(activeClipart !== null && startPosition !== null) { 
 				if(--activeClipart.negativeCount >= 0) {
 					activeClipart.rotate += activeClipart.negativeRotate; 
@@ -422,12 +439,7 @@ class Puzzle {
 				let top = activeClipart.y0 + endPosition.y - startPosition.y; 
 				// 侧滑会导致负坐标直接调用touchend
 				if(left < -this.puzzle.x) {
-					// // 当前索引
-					// let index = activeClipart.selected.parent.getChildIndex(activeClipart.selected); 
-					// // 移除选中拼块
-					// this.puzzle.removeChild(activeClipart.selected); 
-					// this.puzzle.addChildAt(activeClipart.sprite, index); 
-					touchendHandle({data}); 
+					touchendHandle({ data }); 
 					return ;
 				}
 				activeClipart.selected.set(
@@ -440,7 +452,10 @@ class Puzzle {
 			}
 		}); 
 
-		let touchendHandle = e => { 
+		let touchendHandle = ({
+			data: { identifier }
+		}) => {
+			const activeClipart = activeCliparts[identifier] || null
 			if(activeClipart === null) return ;
 			// 吸附效果 
 			if(Math.abs(activeClipart.x - activeClipart.selected.left) <= 15 && Math.abs(activeClipart.y - activeClipart.selected.top) <= 15) {
@@ -478,8 +493,8 @@ class Puzzle {
 			} 
 
 			// 清空对象
-			activeClipart = null; 
-			startPosition = null; 
+			delete activeCliparts[identifier]; 
+			delete startPositions[identifier]; 
 		}; 
 
 		this.stage.on(this.touchend, touchendHandle); 
@@ -496,7 +511,7 @@ class Puzzle {
 			// 开启点击检测
 			sprite.interactive = true; 
 			// 添加事件
-			sprite.on(this.touchstart, ({data, data: {global: position}}) => { 
+			sprite.on(this.touchstart, ({ data: { global: position, identifier } }) => {
 				// 暂停中
 				if(this.paused === true) return ;
 				// 固定
@@ -523,8 +538,8 @@ class Puzzle {
 					clipart.y0 += selected.boxOffsetY; 
 					selected.set({left: clipart.x0, top: clipart.y0}); 
 				} 
-				activeClipart = clipart; 
-				startPosition = {x: position.x, y: position.y}; 
+				activeCliparts[identifier] = clipart;
+				startPositions[identifier] = {x: position.x, y: position.y}; 
 			}); 
 			clipart.rotate = (Math.random() - .5) * Math.PI / 4; 
 
@@ -550,9 +565,9 @@ class Puzzle {
 		}); 
 		// 返回 Promise
 		return new Promise(
-			(resolve, reject) => {
+			(resolve) => {
 				let tl = new TimelineLite(); 
-				tl.add(tweens, 0, "start", .01).call(e => resolve())
+				tl.add(tweens, 0, 'start', .01).call(() => resolve())
 			}
 		); 
 	}
@@ -582,7 +597,7 @@ class Puzzle {
 			// 合并容器
 			else {
 				let parentB = rightClipart.sprite.parent; 
-				if(parentB === null) console.log("报错了", rightClipart, rightClipart.sprite, rightClipart.selected); 
+				if(parentB === null) console.log('报错了', rightClipart, rightClipart.sprite, rightClipart.selected); 
 				if(parent !== parentB) {
 					let children = parentB.children; 
 					while(children.length > 0) {
@@ -601,7 +616,7 @@ class Puzzle {
 			// 合并容器
 			else { 
 				let parentB = upClipart.sprite.parent; 
-				if(parentB === null) console.log("报错了",upClipart, upClipart.sprite, upClipart.selected); 
+				if(parentB === null) console.log('报错了',upClipart, upClipart.sprite, upClipart.selected); 
 				if(parent !== parentB) {
 					let children = parentB.children; 
 					while(children.length > 0) {
@@ -620,7 +635,7 @@ class Puzzle {
 			// 合并容器
 			else {
 				let parentB = downClipart.sprite.parent; 
-				if(parentB === null) console.log("报错了", downClipart, downClipart.sprite, downClipart.selected); 
+				if(parentB === null) console.log('报错了', downClipart, downClipart.sprite, downClipart.selected); 
 				if(parent !== parentB) {
 					let children = parentB.children; 
 					while(children.length > 0) {
@@ -663,7 +678,7 @@ class Puzzle {
 	}
 	pass() { 
 		timer.delete(this.timer); 
-		this.displayShell().then(e => this.event.dispatch("pass", "通关")); 
+		this.displayShell().then(e => this.event.dispatch('pass', '通关')); 
 	}
 	// 礼花
 	displayShell() { 
@@ -696,13 +711,13 @@ class Puzzle {
 					)
 					.to(
 						shell, 1.2, 
-						{top: "+=560", left: (Math.random() > .5 ? "+" : "-")+ "=80", rotation: 0, alpha: 0}
+						{top: '+=560', left: (Math.random() > .5 ? '+' : '-')+ '=80', rotation: 0, alpha: 0}
 					); 
 				return tl; 
 			}); 
 			this.shellTimeline = new TimelineLite(); 
 			this.shellTimeline.pause(); 
-			this.shellTimeline.add(tls, 0, "start", 0.03); 
+			this.shellTimeline.add(tls, 0, 'start', 0.03); 
 		}
 		return new Promise((resolve, reject) => {
 			this.shellTimeline.restart().call(e => this.stage.removeChild(this.fireworksContainer) & resolve()); 
@@ -763,7 +778,7 @@ class Puzzle {
 			else { 
 				this.pause(); 
 				timer.delete(this.timer); 
-				this.event.dispatch("gameover", "超时"); 
+				this.event.dispatch('gameover', '超时'); 
 			}
 		}, 100); 
 	}
@@ -784,4 +799,4 @@ class Puzzle {
 	}
 }
 
-window.Puzzle = Puzzle;
+export default Puzzle
