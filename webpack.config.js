@@ -3,9 +3,20 @@ var CleanWebpackPlugin = require('clean-webpack-plugin');
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
+// 监听选项
+var watchOptions = {
+  ignore: ['node_modules', 'pixi']
+}
+
 module.exports = {
   mode: 'development',
   entry: {
+    polyfill: '@babel/polyfill',
+    pixi: [
+      './src/script/lib/pixi',
+      './src/script/lib/pixi-extra-filters',
+      './src/script/lib/gsap/TweenMax'
+    ],
     index: './src/script/index'
   },
   output: {
@@ -43,7 +54,12 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: ['.js', '.es6'],
+    extensions: ['.js', '.es6']
+  },
+  externals: {
+    '@pixi': 'PIXI',
+    '@pixi-extra-filters': ['PIXI', 'filters'],
+    '@gsap/tween-max': 'TweenMax'
   },
   devtool: 'source-map',
   plugins: [
@@ -58,7 +74,8 @@ module.exports = {
     port: 10086,
     host: 'localhost',
     open: true,
-    contentBase: './dist'
+    contentBase: './dist',
+    watchOptions: watchOptions
   }
 }
 

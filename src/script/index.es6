@@ -54,11 +54,10 @@ const levels = [
     // 免费
     free: false
   }
-]; 
+]
 
 // 从 localStorage 中读取记录
-const record = JSON.parse(localStorage.getItem("puzzle-record")) || {level: -1, difficulty: 2};
-
+const record = JSON.parse(localStorage.getItem("puzzle-record")) || {level: -1, difficulty: 2}
 // 初始化列表
 puzzleList.innerHTML = levels.map(
   (level, index) =>
@@ -76,13 +75,13 @@ puzzleList.innerHTML = levels.map(
         </span>
       </li>
     `
-).join("\n"); 
+).join("\n")
 
-const puzzleLevel = puzzleList.querySelectorAll("li"); 
+const puzzleLevel = puzzleList.querySelectorAll("li")
 
 // 显示地图 
 global.showPuzzleMap = function() {
-  puzzleMap.className = "puzzle_map show"; 
+  puzzleMap.className = "puzzle_map show"
 }
 // 隐藏地图
 global.hidePuzzleMap = function() {
@@ -91,93 +90,93 @@ global.hidePuzzleMap = function() {
 
 // 选择关卡
 global.selectLevel = function(index) { 
-  puzzleGame.className = "puzzle_game show"; 
+  puzzleGame.className = "puzzle_game show"
   setTimeout(function() {
-    puzzle.enter(levels[index].picture); 
-    record.level = index; 
-    updateRecord(); 
-  }, 600); 
+    puzzle.enter(levels[index].picture)
+    record.level = index
+    updateRecord()
+  }, 600)
 }
 
 // 返回
 global.back = function() {
-  puzzleAd.style.display = "none"; 
-  puzzleGame.className = "puzzle_game"; 
+  puzzleAd.style.display = "none"
+  puzzleGame.className = "puzzle_game"
 }
 
 // 更新记录
 const updateRecord = function() {
-  localStorage.setItem("puzzle-record", JSON.stringify(record)); 
+  localStorage.setItem("puzzle-record", JSON.stringify(record))
 }
 
 // 设置难度
 const setDifficulty = function(difficulty) { 
-  difficulty = difficulty | 0; 
-  difficulty = difficulty > 1 ? difficulty : 1; 
-  difficultyOpts[difficulty - 1].checked = "checked"; 
-  puzzle.difficulty = difficulty; 
-  puzzle.totalTime = difficulty * 120; 
+  difficulty = difficulty | 0
+  difficulty = difficulty > 1 ? difficulty : 1
+  difficultyOpts[difficulty - 1].checked = "checked"
+  puzzle.difficulty = difficulty
+  puzzle.totalTime = difficulty * 120
 }
 
 // 创建拼图对象
-const puzzle = new Puzzle(); 
+const puzzle = new Puzzle()
 
 // 默认进入第一张图
-puzzle.init(); 
+puzzle.init()
 // 设置倒计时
-puzzle.totalTime = 60; 
+puzzle.totalTime = 60
 
 // 通关
 puzzle.event.on("pass", function() { 
   if(record.level < levels.length - 1) { 
     // 解锁
-    puzzleLevel[++record.level].className = ""; 
-    puzzle.enter(levels[record.level].picture); 
+    puzzleLevel[++record.level].className = ""
+    puzzle.enter(levels[record.level].picture)
     updateRecord();  
   }
   else {
-    alert("游戏结束"); 
+    alert("游戏结束")
   }
-}); 
+})
 
 // 游戏结束
 puzzle.event.on("gameover", function() {
-  alert("超时了"); 
-}); 
+  alert("超时了")
+})
 
 // 暂停显示广告
 puzzle.event.on("pause", function() {
-  puzzleAd.style.display = "block"; 
-}); 
+  puzzleAd.style.display = "block"
+})
 
 // 恢复隐藏广告
 puzzle.event.on("resume", function() {
-  puzzleAd.style.display = "none"; 
-}); 
+  puzzleAd.style.display = "none"
+})
 
 // 难度选项
-const difficultyOpts = document.querySelectorAll(".puzzle_difficulty"); 
+const difficultyOpts = document.querySelectorAll(".puzzle_difficulty")
 difficultyOpts.forEach(function(opt) {
   opt.addEventListener("click", function() {
-    record.difficulty = this.value; 
-    puzzle.difficulty = this.value; 
-    updateRecord(); 
-  }); 
-}); 
+    record.difficulty = this.value
+    puzzle.difficulty = this.value
+    updateRecord()
+  })
+})
 
 // 同步游戏难度
-setDifficulty(record.difficulty); 
+setDifficulty(record.difficulty)
 
 // 玩过 
 if(record.level >= 0) {
-  resumeGame.className = "puzzle_btn"; 
+  resumeGame.className = "puzzle_btn"
   resumeGame.onclick = function() {
-    selectLevel(record.level); 
+    selectLevel(record.level)
   }
 }
 // 没玩过
 else {
-  resumeGame.className = "puzzle_btn disabled"; 
+  resumeGame.className = "puzzle_btn disabled"
 } 
 
-global.puzzle = puzzle;
+global.puzzle = puzzle
