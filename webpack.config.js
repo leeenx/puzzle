@@ -56,7 +56,7 @@ module.exports = {
   ],
   devServer: {
     port: 10086,
-    host: '192.168.43.134',
+    host: 'localhost',
     open: true,
     contentBase: './dist'
   }
