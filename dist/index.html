@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <title>H5小游戏100例: 拼图</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0, shrink-to-fit=no" />
+	
+		<link rel="stylesheet" href="style.css" />
+	
+</head>
+
+<body>
+	<div class="wrapper puzzle">
+		<div class="puzzle_home"></div>
+		<!-- 用户界面 -->
+		<div class="puzzle_menu" id="menu">
+			<div class="puzzle_high_score" id="highScore"></div>
+			<a class="puzzle_btn" href="javascript:showPuzzleMap();">新 游 戏</a>
+			<a class="puzzle_btn disabled" href="javascript:;" id="resumeGame">继续游戏</a>
+			<a class="puzzle_btn" href="https://zhuanlan.zhihu.com/snsgame?group_id=909745245186072576" target="_blank">关注我们</a>
+			<a class="puzzle_btn" href="https://aotu.io/" target="_blank">凹凸官网</a>
+		</div>
+		<!-- 选择关卡 -->
+		<div class="puzzle_map" id="puzzleMap">
+			<div class="puzzle_map_head">
+				<a class="puzzle_map_back" href="javascript:hidePuzzleMap();"></a>
+				选择关卡
+			</div>
+			<ul class="puzzle_map_body" id="puzzleList">
+				<!-- <li>
+					<span class="puzzle_map_thumb">
+						<img src="./images/covers/a.jpg">
+					</span>
+					<span class="puzzle_map_instr">
+						秋天的银杏树<br>
+						免费
+					</span>
+				</li> -->
+			</ul>
+			<div class="puzzle_map_footer">
+				难度：
+				<input type="radio" value="1" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="2" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="3" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="4" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="5" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="6" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="7" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="8" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="9" name="difficulty" class="puzzle_difficulty">
+				<input type="radio" value="10" name="difficulty" class="puzzle_difficulty"> 
+			</div>
+		</div>
+		<!-- 游戏画布 -->
+		<canvas class="puzzle_game" id="puzzleGame"></canvas>
+		<!-- 暂停时的广告 -->
+		<div class="puzzle_ad" id="puzzleAd">
+			<div class="puzzle_ad_main">
+				<a href="//jd.com">
+					<div class="puzzle_ad_img"></div>
+				</a>
+				<div class="puzzle_ad_close" onclick="puzzle.turnOn()"></div>
+			</div>
+			<div class="puzzle_ad_back" onclick="back()"></div>
+		</div>
+	</div>
+	
+		<script type="text/javascript" src="./script/index-22bdc6.js"></script>
+	
+</body>
+</html>
